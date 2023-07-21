@@ -150,6 +150,7 @@ summary(poisson.model.rate)
 library('readr')
 library('readxl')
 library('tidyverse')
+library("poLCA")
 data <- read_excel("/Users/hecongyuan/Documents/Temporary/西南队列/样例数据及变量对照表/3%基础样例数据20200611.xlsx")
 #变量生成
 data <- data %>% 
@@ -259,6 +260,39 @@ for (col in columns) {
 
 #更改因子水平
 data$Education <- factor(data$Education, levels = c("<6","6~9","9~12",">12"))
-data$Household_Income <- factor(data$Education, levels = c("<12000","12000-19999","20000-59999","60000-99999","100000-199999",">200000"))
+data$Household_Income <- factor(data$Household_Income, levels = c("<12000","12000-19999","20000-59999","60000-99999","100000-199999",">200000"))
 
+#LCA
+#统一修改变变量类型
+cov_factor <- colnames(data)
+data[,cov_factor] <- data.frame(lapply(data[,cov_factor], function(x) as.numeric(x)))
+
+f1 <- cbind(Occupation, Marital, Education, Household_Income, poor_family)~1
+LCA2 <- poLCA(f1, data=data, nclass=3, graphs=TRUE)
+
+
+max_II <- -100
+min_bic <- 100
+for(i in 2:5){
+  lc <- poLCA(f1, data, nclass=i, maxiter=3000, 
+              tol=1e-5, na.rm=FALSE,  
+              nrep=10, verbose=TRUE, calc.se=TRUE)
+  if(lc$bic < min_bic){
+    min_bic <- lc$bic
+    LCA_best_model<-lc
+  }
+}    	
+LCA_best_model
+
+lcmodel <- reshape2::melt(LCA_best_model$probs, level=2)
+zp1 <- ggplot(lcmodel,aes(x = L2, y = value, fill = Var2))
+zp1 <- zp1 + geom_bar(stat = "identity", position = "stack")
+zp1 <- zp1 + facet_grid(Var1 ~ .) 
+zp1 <- zp1 + scale_fill_brewer(type="seq", palette="Greys") +theme_bw()
+zp1 <- zp1 + labs(x = "Fragebogenitems",y="Anteil der Item-\nAntwortkategorien", fill ="Antwortkategorien")
+zp1 <- zp1 + theme( axis.text.y=element_blank(),
+                    axis.ticks.y=element_blank(),                    
+                    panel.grid.major.y=element_blank())
+zp1 <- zp1 + guides(fill = guide_legend(reverse=TRUE))
+print(zp1)
 
