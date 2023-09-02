@@ -1516,3 +1516,6 @@ save(test3, file = paste(path_data, "test3.Rdata", sep = ""))
 ## 3.2 数据初步情况探索####
 #用初步清洗的数据做描述性分析，套用初步数据探索1.rmd即可
 
+
+
+
