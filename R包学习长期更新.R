@@ -300,19 +300,21 @@ print(zp1)
 
 # 3 毕业设计代码 ----------------------------------------------------------------
 ## 3.1 数据变量整理####
+#处理数据函数
+library(tidyverse)
+library(Hmisc)
+library(lubridate)
 #设置文件路径
 path_data <- c("/Users/hecongyuan/Documents/Study/R/R_github/Rpackage_learn/Data/")
 path_function <- c("/Users/hecongyuan/Documents/Study/R/R_github/Rpackage_learn/Function/")
 load(file = paste0(path_data,"何从源3%样例数据及其代码/test.rdata")) 
+
 #处理重复值
 colnames(test)[str_which(colnames(test), "\\.x")]
 test <- test %>% 
   dplyr::rename(A2 = A2.x)
 
-#处理数据函数
-library(tidyverse)
-library(Hmisc)
-library(lubridate)
+
 #处理队列问卷变量（不包括自报疾病）
 preprocess_survey <- function(dat_input) {
   thead <- Sys.time()
@@ -1505,18 +1507,12 @@ preprocess_measure <- function(dat_input) {
   return(dat_tmp) 
 }
 
-test1 <- preprocess_survey(test)
-test2 <- preprocess_measure(test1)
-
-
-
-
-
-
-
-
-
-
-
-
+test1 <- preprocess_survey(test) %>% 
+  select(3,175:209)
+test2 <- preprocess_measure(test) %>% 
+  select(1,119:147)
+test3 <- left_join(test1,test2,by = "个人编码")
+save(test3, file = paste(path_data, "test3.Rdata", sep = ""))
+## 3.2 数据初步情况探索####
+#用初步清洗的数据做描述性分析，套用初步数据探索1.rmd即可
 
